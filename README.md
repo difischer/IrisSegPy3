@@ -1,7 +1,7 @@
 # IrisSegPy3
 Python 3 updated version of Banerjee and Mery (2015).  GAC &amp; GrabCut iris segmentation code.
 
-The original code for this algorithm (available at: https://github.com/sbanerj1/IrisSeg ) was in python 2 and used the original cv library.
+The original code for this algorithm (available at: https://github.com/sbanerj1/IrisSeg ) was in python 2 and used the old ``cv`` library.
 Keep in mind that the code still haves reminents from the previous verison so some variables may be unused, now the code can be imported and uses as a function.
 This code is in Python 3 and uses cv2, ir order to update both codes:
 
