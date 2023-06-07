@@ -8,8 +8,7 @@ import os
 print ('*** Iris segmentation using GAC and GrabCut (PSIVT Workshops 2015) ***')
 print ('*** Original Authors - Sandipan Banerjee & Domingo Mery ***')
 print ('*** Python 3 update - Diego Fischer ***')
-#print ('*** Usage - python GrabCutIris_LevelSets_Ellipse.py <filename> *** \n')
-
+print ('*** Usage - python GrabCutIris_LevelSets_Ellipse.py <filename> *** \n')
 
 
 def IrisSeg(filename,save=False,silent=True):
@@ -174,20 +173,12 @@ def IrisSeg(filename,save=False,silent=True):
     value = DRAW_FG         # drawing initialized to FG
     thickness = 3           # brush thickness
     output_file = []
-    iteration = 1
-
-
-    def contour_iterator(contour):
-        while contour:
-            yield contour
-            contour = contour.h_next()
 
 
     # The class FitEllipse was converted to a function, if a trackbar is to be used again,
     # call the image_fitElipse function for every trackbar change
     
     def image_fitElipse(source_image,iris_contours,slider_pos, ellipse_size,lastr,eoc):
-        # TODO remove this gloval variable (code is working)
         """
         This function finds contours, draws them and their approximation by ellipses.
         """
