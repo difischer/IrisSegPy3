@@ -20,12 +20,12 @@ Also:
 
 Usage: 
 
-``
+```
 import cv2
 from IrisSeg import IrisSeg
 
 image = cv2.imread(image_path)
 ellipsis_params = IrisSeg(image)
-``
+```
 
 ``ellipsis_params`` is a list that contains ``(center, size, angle)`` of the fitted ellipsis
