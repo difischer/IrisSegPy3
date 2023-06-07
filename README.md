@@ -7,7 +7,7 @@ This code is in Python 3 and uses cv2, in order to update both codes:
 
 * All the print statements were updated to print function.
 * All the cv functions were updated to cv2 functions.
-* All / where updated to //.
+* Some division opeators ``/`` where updated to ``//`` when needed.
 * All xrange were updated to range.
 
 Also:
