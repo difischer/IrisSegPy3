@@ -5,13 +5,26 @@ import morphsnakes
 from matplotlib import pyplot as ppl
 import os
 
-print ('*** Iris segmentation using GAC and GrabCut (PSIVT Workshops 2015) ***')
-print ('*** Original Authors - Sandipan Banerjee & Domingo Mery ***')
-print ('*** Python 3 update - Diego Fischer ***')
-print ('*** Usage - python GrabCutIris_LevelSets_Ellipse.py <filename> *** \n')
 
+''' 
+*** Iris segmentation using GAC and GrabCut (PSIVT Workshops 2015) ***
+*** Original Authors - Sandipan Banerjee & Domingo Mery ***
+*** Python 3 update - Diego Fischer ***
+*** Usage - python GrabCutIris_LevelSets_Ellipse.py <filename> ***
+''' 
 
-def IrisSeg(filename,save=False,silent=True):
+def IrisSeg(image,pup_iters=75, iris_iters= 150,filename="out",save=False,silent=True):
+    """Recives an image and returns the iris contour coordinates
+    
+    image: image to be segmented
+    pup_iters: number of iterations for the pupil contour
+    iris_iters: number of iterations for the iris contour
+    filename: name of the file to be saved
+    save: if True, saves the results in the SegResults folder
+    silent: if True, does not print the results
+    
+    Returns: ellipsis_params, a list of tuples with the parameters of the ellipses
+    """
     segF = 'SegResults'
     if not os.path.exists(segF):
         os.makedirs(segF)
@@ -32,7 +45,8 @@ def IrisSeg(filename,save=False,silent=True):
     #print __doc__
 
 
-    img = cv2.imread(filename)
+    img = image
+    original_image=img.copy()
     img2 = img.copy()                              # copies of the original image
     img3 = img.copy()
     #img4 - img.copy()
@@ -178,14 +192,14 @@ def IrisSeg(filename,save=False,silent=True):
     # The class FitEllipse was converted to a function, if a trackbar is to be used again,
     # call the image_fitElipse function for every trackbar change
     
-    def image_fitElipse(source_image,iris_contours,slider_pos, ellipse_size,lastr,eoc):
+    def image_fitElipse(source_image,iris_contours,seg_thresh, ellipse_size,lastr,eoc):
         """
         This function finds contours, draws them and their approximation by ellipses.
         """
         
         cimg = np.zeros(source_image.shape, np.uint8)
         image04 = np.zeros((source_image.shape[0],source_image.shape[1],3), np.uint8)
-        image02 = 255*(source_image > slider_pos).astype('uint8')
+        image02 = 255*(source_image > seg_thresh).astype('uint8')
         cont,_ = cv2.findContours(image02, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
         
         maxf = 0
@@ -271,8 +285,7 @@ def IrisSeg(filename,save=False,silent=True):
         phi = sqradius - np.sqrt(np.sum((grid.T)**2, 0))
         u = np.float_(phi > 0)
         return u
-
-    def test_iris(img_lvl):
+    def test_iris(img_lvl,iris_iters=iris_iters):
         """Recives the image and returns the iris contour coordinates"""
         # g(I)
         gI = morphsnakes.gborders(img_lvl, alpha=2200, sigma=5.48)
@@ -283,7 +296,7 @@ def IrisSeg(filename,save=False,silent=True):
         
         # Visual evolution.
         ppl.figure()
-        ij = morphsnakes.evolve_visual(mgac, num_iters=60, background=img_lvl,silent=silent)
+        ij = morphsnakes.evolve_visual(mgac, num_iters=iris_iters, background=img_lvl,silent=silent)
         #print ij.shape
         
         x_list = []
@@ -304,7 +317,7 @@ def IrisSeg(filename,save=False,silent=True):
         lvl_left = min(x_list)
         return lvl_down, lvl_up, lvl_left, lvl_right
 
-    def test_pupil(img_lvl):
+    def test_pupil(img_lvl, pup_iters=pup_iters):
         """Recives the image and returns the pupil contour coordinates"""
         # g(I)
         gI = morphsnakes.gborders(img_lvl, alpha=2200, sigma=5.48)
@@ -315,7 +328,7 @@ def IrisSeg(filename,save=False,silent=True):
         
         # Visual evolution.
         ppl.figure()
-        ij = morphsnakes.evolve_visual(mgac, num_iters=75, background=img_lvl,silent=silent)
+        ij = morphsnakes.evolve_visual(mgac, num_iters=pup_iters, background=img_lvl,silent=silent)
         
         x_list = []
         y_list = []
@@ -336,15 +349,17 @@ def IrisSeg(filename,save=False,silent=True):
         return p_up, p_down,p_left,p_right
 
 
-    img_lvl = rgb2gray(cv2.imread(filename))/255
+    img_lvl = rgb2gray(original_image.copy())/255
     lvl_down, lvl_up, lvl_left, lvl_right = test_iris(img_lvl)
     p_up,p_down,p_left,p_right = test_pupil(img_lvl)
         
     if (p_left - lvl_left) > 1.3*(lvl_right - p_right):
-        print ('Left WRONG')
+        if not silent:
+            print ('Left WRONG')
         lvl_left = lvl_left + int((p_left - lvl_left)-(lvl_right - p_right))
     elif (lvl_right - p_right) > 1.3*(p_left - lvl_left):
-        print ('Right WRONG') 
+        if not silent:
+            print ('Right WRONG') 
         lvl_right = lvl_right - int((lvl_right - p_right)-(p_left - lvl_left)) 
 
     if (p_right - p_left) > (p_down - p_up):
@@ -438,11 +453,12 @@ def IrisSeg(filename,save=False,silent=True):
     mask2 = np.where((mask==1) + (mask==3),255,0).astype('uint8')
     output = cv2.bitwise_and(img2,img2,mask=mask2)
 
-    strng = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_seg.png')
-    cv2.imwrite(strng,output)
+    if save:
+        strng = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_seg.png')
+        cv2.imwrite(strng,output)
 
-    iris_contours = rgb2gray(cv2.imread(filename))
-    source_image = rgb2gray(cv2.imread(strng))
+    iris_contours = rgb2gray(original_image.copy())
+    source_image = rgb2gray(output.copy())
 
     cv2.namedWindow("Result", 1)
 
@@ -450,7 +466,7 @@ def IrisSeg(filename,save=False,silent=True):
     #for the first iteration lastr is -1 and eoc is 0
     ellipse_size,lastr,eoc, _ = image_fitElipse(source_image, iris_contours,(min_val+20),ellipse_size,lastr=-1,eoc=0)
 
-    tab1 = cv2.imread(strng)
+    tab1 = output.copy()
     iter = 1
     flag_t = 0
 
@@ -474,17 +490,17 @@ def IrisSeg(filename,save=False,silent=True):
                 if j >= bnd and tab1[j][i][0] == 100:
                     tab1[j][i] = (0,0,0)
 
-    cv2.imwrite(strng,tab1)
+    if save:
+        cv2.imwrite(strng,tab1)
 
-    source_image = rgb2gray(cv2.imread(strng))
+    source_image = rgb2gray(output.copy())
 
-    iris_contours = rgb2gray(cv2.imread(filename))
+    iris_contours = rgb2gray(original_image.copy())
     ellipse_size,lastr,eoc, _ = image_fitElipse(source_image, iris_contours, (min_val+20),ellipse_size,lastr,eoc)
 
     iter = 2
-    iris_contours = rgb2gray(cv2.imread(filename))
+    iris_contours = rgb2gray(original_image.copy())
     ellipse_size,lastr,eoc, ellipsis_params = image_fitElipse(source_image, iris_contours, (min_val+20),ellipse_size,lastr,eoc)
-    print(ellipsis_params)
 
     # Saving results
     if save == True:
@@ -498,11 +514,19 @@ def IrisSeg(filename,save=False,silent=True):
 
     print ('Done segmenting!!!')
     cv2.destroyAllWindows()
-    
+    return ellipsis_params
+
 if __name__ == '__main__':
+    
+    print ('*** Iris segmentation using GAC and GrabCut (PSIVT Workshops 2015) ***')
+    print ('*** Original Authors - Sandipan Banerjee & Domingo Mery ***')
+    print ('*** Python 3 update - Diego Fischer ***')
+    print ('*** Usage - python GrabCutIris_LevelSets_Ellipse.py <filename> *** \n')
+    
     if len(sys.argv) == 2:
         filename = sys.argv[1]
-        IrisSeg(filename,save=True,silent=True)
+        image= cv2.imread(filename)
+        IrisSeg(image,filename,pup_iters=75, iris_iters= 150,save=True,silent=True)
     else:
         print ('*** Usage - python GrabCutIris_LevelSets_Ellipse.py <filename> *** \n')
         
