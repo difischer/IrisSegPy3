@@ -16,6 +16,7 @@ Also:
 * ``test_iris()`` and ``test_pupil()`` now recive an image and return coordinates instead of changing global variables.
 * ``FitEllipse`` class was covnerted to a function ``image_fitElipse()``.
 * ``silent`` clause to ``evolve_visual`` was added.
+* the trackbar was removed.
 
 Usage: 
 
