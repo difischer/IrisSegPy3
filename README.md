@@ -17,4 +17,4 @@ Also:
 * ``FitEllipse`` class was covnerted to a function ``image_fitElipse()``.
 * ``silent`` clause to ``evolve_visual`` was added.
 
-To segment images call ``IrisSeg(filename):``
+To segment images call ``IrisSeg(filename)``
