@@ -25,7 +25,9 @@ import cv2
 from IrisSeg import IrisSeg
 
 image = cv2.imread(image_path)
-ellipsis_params = IrisSeg(image)
+ellipsis_params = IrisSeg(image,save=True)
 ```
 
 ``ellipsis_params`` is a list that contains ``(center, size, angle)`` of the fitted ellipsis
+Note: By the moment, the function will save many pictures apart from the segmentation. It's recomended that you use the epipsis parameters to segment yourself (this segementation will be added soon).
+Bad quality and heavy reflection can influence the results quite a bit, so be careful with the images and preprocess them if necesary. 
